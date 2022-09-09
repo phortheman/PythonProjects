@@ -5,7 +5,6 @@ Author: phortheman
 """
 import random
 from enum import Enum, auto
-from time import sleep
 
 class Hand(Enum):
     ROCK = auto()
