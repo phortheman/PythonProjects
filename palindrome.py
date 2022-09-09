@@ -15,16 +15,18 @@ m_bOutput: bool = False
 def main():
     score: int = 0
 
-    wordsInput = "https://www.mit.edu/~ecprice/wordlist.10000"
-
-    response = requests.get(wordsInput)
-    WORDS = response.content.decode("utf-8").splitlines()
-
     operations: float = []
+    testWords: list[str] = []
 
-    for i in WORDS:
+    testWords = fetchTestWordsFromMIT()
+    # testWords = uniqueTestCases()
+
+    for i in testWords:
         tick = time.time()
-        score += checkIfPalindrome( i )
+        bIsPalindrome = checkIfPalindrome( i )
+        score += int( bIsPalindrome == True )
+        if m_bOutput:
+            print( f"'{i}' is {'not ' if not bIsPalindrome else ''}a palindrome")
         toc = time.time()
         operations.append( toc - tick )
 
@@ -32,39 +34,55 @@ def main():
     print( f"The longest time was {max(operations)}")
     print( f"The shortest time was {min(operations)}")
 
-    print( f"There were {score} palindromes provided out of {len(WORDS)} words!" )
-    print( f"That means {score/len(WORDS):.2%} of the words were palindromes!")
+    print( f"There were {score} palindromes provided out of {len(testWords)} words!" )
+    print( f"That means {score/len(testWords):.2%} of the words were palindromes!")
 
 
-def checkIfPalindrome( strInput: str ) -> int:
+def fetchTestWordsFromMIT() -> list[str]:
+    MIT_WORD_LIST = "https://www.mit.edu/~ecprice/wordlist.10000"
+    response = requests.get(MIT_WORD_LIST)
+    words = response.content.decode("utf-8").splitlines()
+    return words
+
+
+def uniqueTestCases() -> list[str]:
+    words = [ '!!@#$!', '1221', 'A', 'Aa', 'Aaa', 'AAa', 'aaA', 'AAAA', 'aaaa', '', 'ßß', '#2@#2$#@ *' ]
+    return words
+
+
+def checkIfPalindrome( strInput: str ) -> bool:
     # Assuming this is a palindrome at first
     bIsPalindrome: bool = True
+    bHasAlNum: bool = False
+    
+    # Quick check if the string is empty or one character
+    if( len(strInput) < 2 ):
+        return True
+
     foldedString = strInput.casefold()
-    count = 0
     posL: int = 0
     posR: int = len(strInput) - 1
 
     while bIsPalindrome:
+        if posL > posR:
+            break
         if not foldedString[posL].isalnum():
             posL += 1
             continue
         if not foldedString[posR].isalnum():
             posR -= 1
             continue
+        bHasAlNum = True
         if foldedString[posR] is not foldedString[posL]:
             bIsPalindrome = False
         else:
             posR -= 1
             posL += 1
-        
-        if posL > posR:
-            count = 1
-            break
-    
-    if m_bOutput:
-        print( f"'{strInput}' is {'not ' if not bIsPalindrome else ''}a palindrome")
 
-    return count
+    if bHasAlNum:
+        return bIsPalindrome
+    else: # If there weren't any alpha numberic characters then it isn't a palindrome
+        return False
 
 if __name__ == "__main__":
     main()
